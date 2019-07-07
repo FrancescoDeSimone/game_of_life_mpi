@@ -22,6 +22,14 @@ void render_cell(gol_matrix gol,size_t col, unsigned int cells, SDL_Renderer* re
 			free(rect_alive);
 }
 
+FPS new_fps(){
+	FPS fps;
+	fps.lasttime = SDL_GetTicks();
+	fps.count = 0;
+	fps.current = 0;
+	return fps;
+}
+
 void render_FPS(int fps, SDL_Renderer* rend, TTF_Font* Sans){
 	SDL_Color White = {255, 255, 255,0}; 
 	char fps_string[9];
@@ -38,4 +46,5 @@ void render_FPS(int fps, SDL_Renderer* rend, TTF_Font* Sans){
     SDL_FreeSurface(surfaceMessage);
     SDL_DestroyTexture(Message);
 }
+
 

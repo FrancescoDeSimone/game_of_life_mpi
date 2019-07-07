@@ -1,4 +1,5 @@
 #include "../header/gol.h"
+#include "../header/util.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -8,11 +9,19 @@
 		ar[__k__>>3] ^= (0x80>>(__k__&7)); \
 	}) \
 
-gol_matrix new_rand_gol(gol_matrix gol,unsigned int dim){
-	gol = malloc(dim);
-	for(size_t i = 0; i<dim/sizeof(rand()); i++)
-		memset(gol+(i*sizeof(rand())),rand(),sizeof(rand()));
+
+
+gol_matrix new_gol(unsigned int dim){
+	gol_matrix gol = malloc(dim);
+	if(!gol)
+		die("Gol matrix not inizialized!");
 	return gol;
+}
+
+
+void rand_gol(gol_matrix* gol,unsigned int dim){
+	for(size_t i = 0; i<dim/sizeof(rand()); i++)
+		memset((*gol)+(i*sizeof(rand())),rand(),sizeof(rand()));
 }
 
 static inline unsigned char 
@@ -24,6 +33,8 @@ get_neighbor_status(gol_matrix gol, size_t row, size_t col, size_t dim) {
 
 unsigned int play_gol(gol_matrix gol, size_t col){
 	gol_matrix tmp = calloc(col,col);
+	if(!tmp)
+		die("Memory error at play_gol function!");
 	unsigned int alive_cell = 0;
 	for(size_t i = 0; i< col; i++)
 		for(size_t j = 0; j< col; j++){
