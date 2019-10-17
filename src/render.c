@@ -4,6 +4,7 @@
 void render_cell(gol_matrix gol,size_t col, unsigned int cells, SDL_Renderer* rend){
 			SDL_Rect* rect_alive = malloc(sizeof(SDL_Rect)*cells);
 			size_t alive_count = 0;
+
 			for(size_t i = 0; i < col; i++)
 				for(size_t j = 0; j < col; j++){
 					if(get_cell(gol,col,i,j)){
@@ -48,3 +49,15 @@ void render_FPS(int fps, SDL_Renderer* rend, TTF_Font* Sans){
 }
 
 
+TTF_Font* init_font(char* path, unsigned int dim){
+	TTF_Init();
+	TTF_Font* Sans = TTF_OpenFont(path, dim); 
+	return Sans;
+}
+
+SDL_Renderer* init_rend(SDL_Window* win){
+	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED); 
+	SDL_SetRenderDrawColor(rend, 0, 0, 0, 255 );
+	SDL_RenderClear(rend);
+	return rend;	
+}

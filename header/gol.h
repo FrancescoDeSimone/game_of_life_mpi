@@ -11,4 +11,4 @@ typedef unsigned char* gol_matrix;
 
 void rand_gol(gol_matrix*,unsigned int);
 gol_matrix new_gol(unsigned int dim);
-unsigned int play_gol(gol_matrix, size_t dim);
+void play_gol(gol_matrix, size_t dim);

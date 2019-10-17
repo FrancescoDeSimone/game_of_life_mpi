@@ -6,70 +6,81 @@
 #include "../header/mpi_utils.h" 
 #include <SDL2/SDL.h> 
 
-
-SDL_Renderer* init_rend(SDL_Window* win){
-	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED); 
-	SDL_SetRenderDrawColor(rend, 0, 0, 0, 255 );
-	SDL_RenderClear(rend);
-	return rend;	
-}
-
-TTF_Font* init_font(char* path, unsigned int dim){
-	TTF_Init();
-	TTF_Font* Sans = TTF_OpenFont(path, dim); 
-	return Sans;
-}
-
 int main(){
 
-    unsigned int DIM = pow(2,15);
+    unsigned int DIM = 32768;
+	unsigned char matrix[32768];
+	gol_matrix gol = matrix; 
 	int rank, np;
 	unsigned int cells = DIM*8;
     const size_t col = sqrt(cells);
-
+	unsigned char close = 0;
+	SDL_Window* win;
+	SDL_Renderer* rend; 
+	TTF_Font* Sans;
+	FPS fps; 
 	MPI_Init(NULL,NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	MPI_Comm_size(MPI_COMM_WORLD,&np);
-	if(!rank){
-		gol_matrix gol = new_gol(DIM); 
+	
+	if(rank == 0){
 		rand_gol(&gol,DIM);
 		if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 			die("error initializing SDL: %s\n", SDL_GetError()); 
 
-		SDL_Window* win = SDL_CreateWindow("Game of Life", SDL_WINDOWPOS_CENTERED, 
+		win = SDL_CreateWindow("Game of Life", SDL_WINDOWPOS_CENTERED, 
 												SDL_WINDOWPOS_CENTERED, 
 												1366, 768, SDL_WINDOW_FULLSCREEN); 
-		SDL_Renderer* rend = init_rend(win);
-		TTF_Font* Sans = init_font("Sans.ttf",24);
-		unsigned char close = 0;
-		FPS fps = new_fps();
-		int* arr_dim = divide_matrix(col,np);
-		while (!close) { 
+		rend = init_rend(win);
+		Sans = init_font("Sans.ttf",24);
+		fps = new_fps();
+	}
+
+	while (!close) { 
+		if(rank == 0){
 			SDL_Event event; 
 			while (SDL_PollEvent(&event)) { 
 				switch (event.type) { 
 				case SDL_QUIT: 
-					close = 1; 
+					close = 255; 
+					MPI_Bcast(&close,1,MPI_UNSIGNED_CHAR,0,MPI_COMM_WORLD);
 					break; 
 				}
 			}
-			cells = play_gol(gol,col);
-			render_cell(gol,col,cells,rend);
+
+			MPI_Request rec;
+			play_gol(matrix,256);
+			for(unsigned char i = 1; i<np;i++)
+				MPI_Isend(matrix+(8192*i),8192,MPI_UNSIGNED_CHAR,i,0,MPI_COMM_WORLD,&rec);
+		}
+		
+		else{
+
+			MPI_Request rec;
+			MPI_Recv(matrix,8192,MPI_CHAR,0,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			play_gol(matrix,256);
+			MPI_Isend(matrix,8192,MPI_CHAR,0,1,MPI_COMM_WORLD,&rec);
+		}
+		
+		if(rank==0)
+		{
+			for(unsigned char i = 1; i<np;i++)
+				MPI_Recv(matrix+(8192*i),8192,MPI_UNSIGNED_CHAR,i,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+
+			render_cell(matrix,col,cells,rend);
 			render_FPS(fps.current,rend,Sans);
 			SDL_RenderPresent(rend); 
 			SDL_RenderClear(rend);
 			update_fps(fps);
-			/* SDL_Delay(1000/60); */
-		} 
-		free(arr_dim);
-		free(gol);
+		}
+	}
+
+	if(!rank){
 		SDL_DestroyRenderer(rend); 
 		SDL_DestroyWindow(win); 
 		TTF_Quit();
 		SDL_Quit();
 	}
-	else{
 
-	}
 	MPI_Finalize();
 }
