@@ -1,6 +1,8 @@
 #include "../header/gol.h"
 #include "../header/util.h"
+#include "../header/config.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #define change_status(ar,col,i,j) \
@@ -9,25 +11,19 @@
 		ar[__k__>>3] ^= (0x80>>(__k__&7)); \
 	}) \
 
-gol_matrix new_gol(unsigned int dim){
-	gol_matrix gol = malloc(dim);
-	if(!gol)
-		die("Gol matrix not inizialized!");
-	return gol;
-}
 
-void rand_gol(gol_matrix* gol,unsigned int dim){
+void rand_gol(unsigned char* gol,unsigned int dim){
 	for(size_t i = 0; i<dim/sizeof(rand()); i++)
-		memset((*gol)+(i*sizeof(rand())),rand(),sizeof(rand()));
+		memset((gol)+(i*sizeof(rand())),rand(),sizeof(rand()));
 }
  
 static inline unsigned char 
-get_neighbor_status(gol_matrix gol, size_t dim, size_t row, size_t col) {
-	return (row>=0 || row<dim || col>=0 || col<dim || get_cell(gol,dim,row,col));  
+get_neighbor_status(unsigned char* gol, size_t dim, size_t row, size_t col) {
+	return !(row<0 || row>=dim || col<0 || col>=dim || !get_cell(gol,dim,row,col));  
 }
 
-void play_gol(gol_matrix gol, size_t col){
-	gol_matrix tmp = calloc(col,col);
+void play_gol(unsigned char* gol, size_t col){
+	unsigned char* tmp = calloc((col*col)>>3,1);
 	if(!tmp)
 		die("Memory error at play_gol function!");
 	

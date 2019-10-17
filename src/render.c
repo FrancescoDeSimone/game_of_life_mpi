@@ -1,7 +1,6 @@
 #include "../header/render.h"
-#include <stdio.h> 
 
-void render_cell(gol_matrix gol,size_t col, unsigned int cells, SDL_Renderer* rend){
+void render_cell(unsigned char* gol,size_t col, unsigned int cells, SDL_Renderer* rend){
 			SDL_Rect* rect_alive = malloc(sizeof(SDL_Rect)*cells);
 			size_t alive_count = 0;
 
