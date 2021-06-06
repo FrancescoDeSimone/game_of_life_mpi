@@ -7,7 +7,7 @@
 ({\
 		__fps__.count++; \
 		if(__fps__.lasttime < SDL_GetTicks() - 1000){ \
-			__fps__.current = __fps__.count; \
+			__fps__.current = (__fps__).count; \
 			__fps__.count = 0; \
 			__fps__.lasttime = SDL_GetTicks();\
 		} \

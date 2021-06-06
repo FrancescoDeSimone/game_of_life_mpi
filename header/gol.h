@@ -9,4 +9,4 @@
 
 
 void rand_gol(unsigned char*, unsigned int);
-void play_gol(unsigned char*, size_t);
+void play_gol(unsigned char*, size_t, int);
