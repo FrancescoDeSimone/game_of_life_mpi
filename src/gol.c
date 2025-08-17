@@ -17,47 +17,48 @@ void rand_gol(unsigned char *gol, unsigned int dim) {
 }
 
 static inline unsigned char get_neighbor_status(unsigned char *gol,
-                                                size_t dim_row, size_t dim_col,
+                                                size_t dim_col,
                                                 size_t row, size_t col) {
-  if (row >= dim_row || col >= dim_col) {
+  if (col >= dim_col) {
       return 0;
   }
   return get_cell(gol, dim_col, row, col) ? 1 : 0;
 }
 
-void play_gol(unsigned char *gol, size_t grid_width, int np) {
-  size_t num_workers = (np <= 1) ? 1 : np - 1;
-  size_t local_rows = grid_width / num_workers;
 
-  unsigned char *tmp = calloc((local_rows * grid_width) >> 3, 1);
+void play_gol(unsigned char *gol, size_t grid_width, size_t local_rows) {
+  size_t data_size_bytes = (local_rows * grid_width) >> 3;
+  unsigned char *tmp = calloc(data_size_bytes, 1);
   if (!tmp)
     die("Memory error at play_gol function!");
 
-  for (size_t i = 0; i < local_rows; i++) {
+  for (size_t i = 1; i <= local_rows; i++) {
     for (size_t j = 0; j < grid_width; j++) {
 
       unsigned char neighbor = 0;
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i - 1, j - 1);
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i - 1, j);
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i - 1, j + 1);
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i, j - 1);
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i, j + 1);
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i + 1, j - 1);
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i + 1, j);
-      neighbor += get_neighbor_status(gol, local_rows, grid_width, i + 1, j + 1);
+      neighbor += get_neighbor_status(gol, grid_width, i - 1, j - 1);
+      neighbor += get_neighbor_status(gol, grid_width, i - 1, j);
+      neighbor += get_neighbor_status(gol, grid_width, i - 1, j + 1);
+      neighbor += get_neighbor_status(gol, grid_width, i, j - 1);
+      neighbor += get_neighbor_status(gol, grid_width, i, j + 1);
+      neighbor += get_neighbor_status(gol, grid_width, i + 1, j - 1);
+      neighbor += get_neighbor_status(gol, grid_width, i + 1, j);
+      neighbor += get_neighbor_status(gol, grid_width, i + 1, j + 1);
+      size_t tmp_i = i - 1;
+
       if (get_cell(gol, grid_width, i, j)) {
           if (neighbor == 2 || neighbor == 3) {
-              change_status(tmp, grid_width, i, j);
+              change_status(tmp, grid_width, tmp_i, j);
           }
       } else {
           if (neighbor == 3) {
-              change_status(tmp, grid_width, i, j);
+              change_status(tmp, grid_width, tmp_i, j);
           }
       }
     }
   }
 
-  memcpy(gol, tmp, (local_rows * grid_width) >> 3);
+  memcpy(gol + (grid_width / 8), tmp, data_size_bytes);
 
   free(tmp);
 }
