@@ -1,7 +1,7 @@
 #pragma once
 #include "../header/gol.h"
-#include <SDL2/SDL.h> 
-#include <SDL2/SDL_ttf.h> 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #define update_fps(__fps__)\
 ({\
