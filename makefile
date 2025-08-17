@@ -1,30 +1,27 @@
-LIBS=-lSDL2 -lSDL2_ttf -lm 
+LDFLAGS=-lSDL2 -lSDL2_ttf -lm
+CFLAGS = -O3 -flto -Wall -Wextra -std=c11
 CC=mpicc
 OUTDIR=out
+SRCDIR = src
+OUTDIR = out
+HEADERDIR = header
+TARGET = gol
 
-build: clean gol
+SOURCES = $(wildcard $(SRCDIR)/*.c)
+OBJECTS = $(patsubst $(SRCDIR)/%.c, $(OUTDIR)/%.o, $(SOURCES))
 
-gol: $(OUTDIR)/main.o $(OUTDIR)/gol.o $(OUTDIR)/util.o $(OUTDIR)/render.o $(OUTDIR)/mpi_utils.o
-	$(CC) -O3 -flto $(OUTDIR)/*.o $(LIBS) -o gol
+.PHONY: all clean
+all: $(TARGET)
 
-$(OUTDIR)/main.o: src/main.c | $(OUTDIR)
-	$(CC) -c src/main.c -o $@
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-$(OUTDIR)/util.o: src/util.c | $(OUTDIR)
-	$(CC) -c src/util.c -o $@
-
-$(OUTDIR)/gol.o: src/gol.c | $(OUTDIR)
-	$(CC) -c src/gol.c -o $@
-
-$(OUTDIR)/render.o: src/render.c | $(OUTDIR)
-	$(CC) -c src/render.c -o $@
-
-$(OUTDIR)/mpi_utils.o: src/mpi_utils.c | $(OUTDIR)
-	$(CC) -c src/mpi_utils.c -o $@
+$(OUTDIR)/%.o: $(SRCDIR)/%.c | $(OUTDIR)
+	$(CC) $(CFLAGS) -I$(HEADERDIR) -c $< -o $@
 
 # Rule to create output directory
 $(OUTDIR):
 	mkdir -p $(OUTDIR)
 
 clean:
-	rm -rf $(OUTDIR)/*
+	rm -rf $(OUTDIR) $(TARGET)
